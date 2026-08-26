@@ -1,6 +1,7 @@
 
 package BankingSystem;
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 public class Account{
@@ -13,6 +14,7 @@ public class Account{
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
+    @JsonBackReference
     private Customer customer;
     public Account(){
 

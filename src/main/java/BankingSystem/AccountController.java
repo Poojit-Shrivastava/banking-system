@@ -23,17 +23,12 @@ public class AccountController {
     }
 
     @PostMapping("/accounts")
-    public ResponseEntity<Account> createAccount(@RequestBody Account account) {
+    public ResponseEntity<Account> createAccount(@RequestBody AccountRequest request) {
 
-       // System.out.println(
-               // "Creating account for: " + account.getName()
-        //);
-        Account created = accountService.createAccount(account);
-        if(created == null){
-            return ResponseEntity.badRequest().build();
-        }
+        Account created = accountService.createAccount(request);
+        if(created == null) return ResponseEntity.notFound().build();
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    }
+     }
     @PutMapping("/accounts/{id}")
     public ResponseEntity<Account> updatedAccount( @PathVariable Integer id, @RequestBody Account updatedAccount){
         Optional<Account> updated = accountService.updateAccount(id,updatedAccount);
@@ -49,6 +44,18 @@ public class AccountController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/accounts/{id}/deposit")
+    public ResponseEntity<Account> deposit(@PathVariable Integer id, @RequestParam double amount){
+      Account updated = accountService.deposit(id, amount);
+      return ResponseEntity.ok(updated);
+    }
+    @PostMapping("/accounts/{id}/withdraw")
+    public ResponseEntity<Account> withdraw(
+            @PathVariable Integer id,
+            @RequestParam double amount){
+        Account updated = accountService.withdraw(id,amount);
+        return ResponseEntity.ok(updated);
     }
 
 }
