@@ -58,4 +58,10 @@ public class AccountController {
         return ResponseEntity.ok(updated);
     }
 
+    @PostMapping("/accounts/{id}/transfer")
+    public ResponseEntity<Void> transfer(@PathVariable Integer id, @RequestBody TransferRequest request){
+        accountService.transfer(id, request.getToAccountId(), request.getAmount());
+        return ResponseEntity.ok().build();
+    }
+
 }

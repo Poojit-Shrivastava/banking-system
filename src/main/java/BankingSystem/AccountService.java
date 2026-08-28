@@ -1,6 +1,9 @@
 package BankingSystem;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -8,13 +11,15 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
+    private final TransactionRepository transactionRepository;
 
     public AccountService(
             AccountRepository accountRepository,
-            CustomerRepository customerRepository) {
+            CustomerRepository customerRepository, TransactionRepository transactionRepository) {
 
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     // CREATE ACCOUNT
@@ -92,7 +97,7 @@ public class AccountService {
         Account account =
                 accountRepository.findById(id)
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new AccountNotFoundException(
                                         "Account not found"
                                 )
                         );
@@ -116,7 +121,7 @@ public class AccountService {
         Account account =
                 accountRepository.findById(id)
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new AccountNotFoundException(
                                         "Account not found"
                                 )
                         );
@@ -133,4 +138,43 @@ public class AccountService {
 
         return accountRepository.save(account);
     }
+
+    //MONEY TRANSFER
+    @Transactional
+    public void transfer(
+            Integer fromAccountId,
+            Integer toAccountId,
+            double amount){
+        if(amount <= 0){
+            throw new InvalidAmountException("Amount must be greater than zero");
+        }
+
+        Account fromAccount = accountRepository.findById(fromAccountId).orElseThrow(()-> new AccountNotFoundException("Sender account not found"));
+
+        Account toAccount = accountRepository.findById(toAccountId).orElseThrow(()-> new AccountNotFoundException("Receiver account not found"));
+
+        if(fromAccount.getId().equals(toAccount.getId())) throw new InvalidAmountException("Cannot transfer to the same account");
+
+        if(amount>fromAccount.getBalance()) throw new InsufficientBalanceException("insufficient balance");
+
+        fromAccount.setBalance(fromAccount.getBalance() - amount);
+
+        toAccount.setBalance(toAccount.getBalance() + amount);
+
+        accountRepository.save(fromAccount);
+        accountRepository.save(toAccount);
+
+        Transaction transaction = new Transaction();
+
+        transaction.setFromAccount(fromAccount);
+        transaction.setToAccount(toAccount);
+        transaction.setAmount(amount);
+        transaction.setType("TRANSFER");
+        transaction.setTimestamp(LocalDateTime.now());
+
+        transactionRepository.save(transaction);
+    }
+
+
+
 }
