@@ -31,6 +31,7 @@ public class Transaction {
     public Account getFromAccount(){
         return fromAccount;
     }
+    public Account getToAccount(){return toAccount;}
     public void setFromAccount(Account fromAccount){
         this.fromAccount = fromAccount;
     }

@@ -3,6 +3,7 @@ package BankingSystem;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+@Service
 public class TransactionService {
     private final TransactionRepository transactionRepository;
 
