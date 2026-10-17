@@ -21,4 +21,10 @@ public class AuthController {
         }
         return token;
     }
+
+    @PostMapping("/register")
+    public UserResponse register(@RequestBody User user){
+        User createdUser = authService.register(user.getUsername(), user.getPassword());
+        return new UserResponse(createdUser.getId(), createdUser.getUsername(),  createdUser.getRole());
+    }
 }

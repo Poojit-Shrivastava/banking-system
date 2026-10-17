@@ -46,8 +46,8 @@ public class AccountService {
     }
 
     // GET ALL ACCOUNTS
-    public List<Account> getAllAccounts() {
-        return accountRepository.findAll();
+    public List<Account> getAllAccounts(String username) {
+        return accountRepository.findByCustomerUserUsername(username);
     }
 
     // GET ACCOUNT BY ID

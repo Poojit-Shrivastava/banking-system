@@ -33,4 +33,17 @@ public class AuthService {
                 user.getRole()
         );
     }
+
+    public User register(String username, String password){
+        if(userRepository.findByUsername(username).isPresent()){
+            throw new RuntimeException("Username already  exists");
+        }
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole("CUSTOMER");
+
+        return userRepository.save(user);
+
+    }
 }

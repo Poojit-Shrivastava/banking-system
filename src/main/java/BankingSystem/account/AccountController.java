@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
 public class AccountController {
@@ -18,9 +16,11 @@ public class AccountController {
     public AccountController(AccountService accountService) {
         this.accountService = accountService;
     }
+
     @GetMapping("/accounts")
-    public List<Account> getAllAccounts(){
-        return accountService.getAllAccounts();
+    public List<Account> getAllAccounts(@AuthenticationPrincipal Jwt jwt){
+        String username = jwt.getSubject();
+        return accountService.getAllAccounts(username);
     }
 
 
@@ -51,36 +51,64 @@ public class AccountController {
 
 
     @PutMapping("/accounts/{id}")
-    public ResponseEntity<Account> updatedAccount( @PathVariable Integer id, @RequestBody Account updatedAccount){
+    public ResponseEntity<Account> updatedAccount( @PathVariable Integer id, @RequestBody Account updatedAccount, @AuthenticationPrincipal Jwt jwt){
+
+        String username = jwt.getSubject();
+        if(!accountService.isAccountOwnedByUser(id,username)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         Optional<Account> updated = accountService.updateAccount(id,updatedAccount);
         if(updated.isEmpty()){
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(updated.get());
     }
+
     @DeleteMapping("/accounts/{id}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable Integer id){
+    public ResponseEntity<Void> deleteAccount(@PathVariable Integer id, @AuthenticationPrincipal Jwt jwt){
+
+        String username = jwt.getSubject();
+        if(!accountService.isAccountOwnedByUser(id, username)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         boolean deleted = accountService.deleteAccount(id);
         if(!deleted){
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
     }
+
     @PostMapping("/accounts/{id}/deposit")
-    public ResponseEntity<Account> deposit(@PathVariable Integer id, @RequestParam double amount){
+    public ResponseEntity<Account> deposit(@PathVariable Integer id, @RequestParam double amount,@AuthenticationPrincipal Jwt jwt){
+      String username = jwt.getSubject();
+      if(!accountService.isAccountOwnedByUser(id, username)){
+          return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+      }
       Account updated = accountService.deposit(id, amount);
       return ResponseEntity.ok(updated);
     }
+
     @PostMapping("/accounts/{id}/withdraw")
     public ResponseEntity<Account> withdraw(
             @PathVariable Integer id,
-            @RequestParam double amount){
+            @RequestParam double amount,
+            @AuthenticationPrincipal Jwt jwt){
+
+        String username = jwt.getSubject();
+        if(!accountService.isAccountOwnedByUser(id, username)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         Account updated = accountService.withdraw(id,amount);
         return ResponseEntity.ok(updated);
     }
 
     @PostMapping("/accounts/{id}/transfer")
-    public ResponseEntity<Void> transfer(@PathVariable Integer id, @RequestBody TransferRequest request){
+    public ResponseEntity<Void> transfer(@PathVariable Integer id, @RequestBody TransferRequest request, @AuthenticationPrincipal Jwt jwt){
+
+        String username = jwt.getSubject();
+        if(!accountService.isAccountOwnedByUser(id, username)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         accountService.transfer(id, request.getToAccountId(), request.getAmount());
         return ResponseEntity.ok().build();
     }

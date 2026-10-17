@@ -10,8 +10,9 @@ public class TransactionService {
     public TransactionService( TransactionRepository transactionRepository){
         this.transactionRepository = transactionRepository;
     }
-    public List<Transaction> getAllTransactions(){
-        return transactionRepository.findAll();
+    public List<Transaction> getAllTransactions(String username){
+        return transactionRepository.
+                findByFromAccountCustomerUserUsernameOrToAccountCustomerUserUsername(username, username);
     }
 
     public Optional<Transaction> getTransactionById(Integer id){
